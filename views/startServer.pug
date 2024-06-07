@@ -1,0 +1,21 @@
+include head 
+include navBar 
+section.wrapper(style='padding:5rem 0;')
+    .container
+        .col-sm-8.offset-sm-2.col-lg-6.offset-lg-3.col-xl-4.offset-xl-4.text-center
+            form.rounded.bg-white.shadow.p-5
+                h3.text-dark.fw-bolder.fs-4.mb-2 Re-start the server                
+                .form-floating.mb-3
+                    select#serverName.form-control
+                        each s in servers 
+                            option(value=`${s.serverName}`)=`${s.serverName}`
+                    label(for='serverName') Server Name
+                .form-floating.mb-3
+                    input#accessId.form-control(type='password' placeholder='Access Id')
+                    label(for='accessId') Access Id
+                
+                
+                button.btn.btn-primary.submit_btn.w-100.my-4(type='submit') Re-Start
+include footer 
+script(src="/js/startServer.js")
+script(src='https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.0/axios.min.js' integrity='sha512-aoTNnqZcT8B4AmeCFmiSnDlc4Nj/KPaZyB5G7JnOnUEkdNpCZs1LCankiYi01sLTyWy+m2P+W4XM+BuQ3Q4/Dg==' crossorigin='anonymous' referrerpolicy='no-referrer')

@@ -1,0 +1,322 @@
+
+
+doctype html
+head
+  link(href='https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css' rel='stylesheet' integrity='sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx' crossorigin='anonymous')
+  link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css')
+  link(href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css", rel="stylesheet")
+  link(rel='stylesheet' href='/css/style.css')
+  script(src='https://d3js.org/d3.v5.min.js')
+  script(src="https://html2canvas.hertzen.com/dist/html2canvas.min.js")
+  script. 
+     const data = !{JSON.stringify(transformedData)};
+#charts1
+  button#btn1.btn.btn-success(type='button' onclick="downloadSection('charts1','btn1')") download
+#charts2
+  button#btn2.btn.btn-success(type='button' onclick="downloadSection('2','btn2')") download
+#scatter-plot
+  button#btn3.btn.btn-success(type='button' onclick="downloadSection('charts3','btn3')") download
+#charts3
+  button#btn4.btn.btn-success(type='button' onclick="downloadSection('charts4','btn4')") download
+
+script.
+  // Your JSON data
+  // Define a color scale based on dataValue
+  
+  const color = d3
+  .scaleSequential(d3.interpolateCool)
+  .domain([0, d3.max(data, (d) => d.dataSource.length)]);
+  // Create a container for the charts
+  const container1 = d3.select("#charts1");
+  // Iterate through each data set and create a bar chart for each
+  data.forEach((dataset, index) => {
+  // Create an SVG element for each chart
+  const svg = container1
+  .append("svg")
+  .attr("width", 500)
+  .attr("height", 500);
+  svg.style("overflow", "auto")
+  // Append a group element for the chart
+  const g = svg.append("g").attr("transform", "translate(50, 20)");
+  // Define x and y scales for each chart
+  const x = d3
+  .scaleTime()
+  .domain([
+  d3.min(dataset.dataSource, (d) => new Date(d.timeStamp)),
+  d3.max(dataset.dataSource, (d) => new Date(d.timeStamp)),
+  ])
+  .range([0, 760]);
+  const y = d3
+  .scaleLinear()
+  .domain([
+  0,
+  d3.max(dataset.dataSource, (d) => parseFloat(d.dataValue)),
+  ])
+  .range([380, 0]);
+  // Create x and y axes
+  const xAxis = d3.axisBottom(x);
+  const yAxis = d3.axisLeft(y);
+  // Draw the bars with colors based on dataValue
+  g.selectAll(".bar")
+  .data(dataset.dataSource)
+  .enter()
+  .append("rect")
+  .attr("class", "bar")
+  .attr("x", (d) => x(new Date(d.timeStamp)))
+  .attr("y", (d) => y(parseFloat(d.dataValue)))
+  .attr("width", 3)
+  .attr("height", (d) => 380 - y(parseFloat(d.dataValue)))
+  .attr("fill", (d) => color(dataset.dataSource.length));
+  // Append x and y axes to the chart
+  g.append("g")
+  .attr("class", "x-axis")
+  .attr("transform", "translate(0, 380)")
+  .call(xAxis);
+  g.append("g").attr("class", "y-axis").call(yAxis);
+  // Add dataName as a chart title
+  g.append("text")
+  .attr("text-anchor", "middle")
+  .attr("font-size", 14)
+  .attr("dy", "-1em")
+  .text(dataset.dataName);
+  });
+script.
+  // Your JSON data in the new format
+  
+  // Create a container for the charts
+  const container2 = d3.select("#charts2");
+  // Iterate through the data and create a chart for each dataset
+  data.forEach((dataset, index) => {
+  // Create an SVG element for each chart
+  const svg = container2
+  .append("svg")
+  .attr("width", 500)
+  .attr("height", 500);
+  svg.style("overflow", "auto")
+  // Append a group element for the chart
+  const g = svg.append("g").attr("transform", "translate(40, 20)"); // Adjust margin
+  // Parse the timestamp strings to Date objects
+  dataset.dataSource.forEach((entry) => {
+  entry.timeStamp = new Date(entry.timeStamp);
+  });
+  // Define x and y scales for each chart
+  const x = d3.scaleTime().range([0, 760]); // Adjust width
+  const y = d3.scaleLinear().range([380, 0]); // Adjust height
+  // Set the domains for x and y scales based on the data for each chart
+  x.domain(d3.extent(dataset.dataSource, (d) => d.timeStamp));
+  y.domain([
+  0,
+  d3.max(dataset.dataSource, (d) => parseFloat(d.dataValue)),
+  ]);
+  // Create a line generator
+  const line = d3
+  .line()
+  .x((d) => x(d.timeStamp))
+  .y((d) => y(parseFloat(d.dataValue)));
+  // Create x and y axes
+  const xAxis = d3.axisBottom(x);
+  const yAxis = d3.axisLeft(y);
+  // Draw the line chart
+  g.append("path")
+  .datum(dataset.dataSource)
+  .attr("class", "line")
+  .attr("d", line)
+  .style("stroke", "steelblue") // You can set the color as needed
+  .style("fill", "none");
+  // Append x and y axes to the chart
+  g.append("g")
+  .attr("class", "x-axis")
+  .attr("transform", "translate(0, 380)") // Adjust position
+  .call(xAxis);
+  g.append("g").attr("class", "y-axis").call(yAxis);
+  });
+script.
+  // Your JSON data
+  
+  // Define color scale for pie chart segments
+  const color3 = d3
+  .scaleOrdinal()
+  .domain(["<0", "0-10", "10-40", "40-100", "100+"])
+  .range(["red", "blue", "green", "orange", "pink"]);
+  // Create a container for the charts
+  const container3 = d3.select("#charts3");
+  // Iterate through data and create a pie chart for each dataset
+  data.forEach((dataset) => {
+  // Create an SVG element for each chart
+  const svg = container3
+  .append("svg")
+  .attr("width", 500)
+  .attr("height", 500);
+  svg.style("overflow", "auto")
+  // Append a group element for the chart
+  const g = svg.append("g").attr("transform", "translate(250, 250)"); // Center the pie chart
+  // Calculate the total dataValue for color classification
+  const totalValue = dataset.dataSource.reduce(
+  (sum, entry) => parseFloat(entry.dataValue),
+  0
+  );
+  // Create an array of data segments with colors based on value ranges
+  const pieData = [
+  {
+  range: "<0",
+  value:
+  (dataset.dataSource.filter(
+  (entry) => parseFloat(entry.dataValue) < 0
+  ).length /
+  dataset.dataSource.length) *
+  totalValue,
+  },
+  {
+  range: "0-10",
+  value:
+  (dataset.dataSource.filter(
+  (entry) =>
+  parseFloat(entry.dataValue) >= 0 &&
+  parseFloat(entry.dataValue) <= 10
+  ).length /
+  dataset.dataSource.length) *
+  totalValue,
+  },
+  {
+  range: "10-40",
+  value:
+  (dataset.dataSource.filter(
+  (entry) =>
+  parseFloat(entry.dataValue) > 10 &&
+  parseFloat(entry.dataValue) <= 40
+  ).length /
+  dataset.dataSource.length) *
+  totalValue,
+  },
+  {
+  range: "40-100",
+  value:
+  (dataset.dataSource.filter(
+  (entry) =>
+  parseFloat(entry.dataValue) > 40 &&
+  parseFloat(entry.dataValue) <= 100
+  ).length /
+  dataset.dataSource.length) *
+  totalValue,
+  },
+  {
+  range: "100+",
+  value:
+  (dataset.dataSource.filter(
+  (entry) => parseFloat(entry.dataValue) > 100
+  ).length /
+  dataset.dataSource.length) *
+  totalValue,
+  },
+  ];
+  // Define the pie layout
+  const pie = d3.pie().value((d) => d.value);
+  // Define the arc for drawing the pie chart segments
+  const arc = d3.arc().innerRadius(0).outerRadius(100);
+  // Create the pie chart
+  const pieChart = g
+  .selectAll(".arc")
+  .data(pie(pieData))
+  .enter()
+  .append("g")
+  .attr("class", "arc");
+  // Draw the pie chart segments with colors
+  pieChart
+  .append("path")
+  .attr("d", arc)
+  .attr("fill", (d) => color3(d.data.range));
+  // Add dataName and range labels
+  g.append("text")
+  .attr("text-anchor", "middle")
+  .attr("font-size", 14)
+  .attr("dy", "-1em")
+  .text(dataset.dataName);
+  g.append("text")
+  .attr("text-anchor", "middle")
+  .attr("font-size", 12)
+  .attr("dy", "1em")
+  .text("Range: " + dataset.dataSource.length);
+  });
+
+script.
+      // Your JSON data for the scatter plot
+      
+      // Create a container for the scatter plot
+      const scatterContainer = d3.select("#scatter-plot");
+      
+      // Iterate through the data and create a scatter plot
+      data.forEach((dataset) => {
+        // Create an SVG element for the scatter plot
+        const svg = scatterContainer
+          .append("svg")
+          .attr("width", 500)
+          .attr("height", 500);
+        
+        // Append a group element for the scatter plot
+        const g = svg.append("g").attr("transform", "translate(50, 20)");
+        
+        // Define x and y scales
+        const x = d3
+          .scaleTime()
+          .domain([
+            d3.min(dataset.dataSource, (d) => new Date(d.timeStamp)),
+            d3.max(dataset.dataSource, (d) => new Date(d.timeStamp)),
+          ])
+          .range([0, 760]); // Adjust the width as needed
+        
+        const y = d3
+          .scaleLinear()
+          .domain([
+            0,
+            d3.max(dataset.dataSource, (d) => parseFloat(d.dataValue)),
+          ])
+          .range([380, 0]);
+        
+        // Create x and y axes
+        const xAxis = d3.axisBottom(x);
+        const yAxis = d3.axisLeft(y);
+        
+        // Draw the scatter plot points
+        g.selectAll(".point")
+          .data(dataset.dataSource)
+          .enter()
+          .append("circle")
+          .attr("class", "point")
+          .attr("cx", (d) => x(new Date(d.timeStamp)))
+          .attr("cy", (d) => y(parseFloat(d.dataValue)))
+          .attr("r", 5) // Adjust the circle radius as needed
+          .attr("fill", (d) => getColor(d.dataValue));
+        
+        // Append x and y axes to the scatter plot
+        g.append("g")
+          .attr("class", "x-axis")
+          .attr("transform", "translate(0, 380)")
+          .call(xAxis);
+        
+        g.append("g")
+          .attr("class", "y-axis")
+          .call(yAxis);
+        
+        // Add dataName as a chart title
+        g.append("text")
+          .attr("text-anchor", "middle")
+          .attr("font-size", 14)
+          .attr("dy", "-1em")
+          .text(dataset.dataName);
+      });
+
+      // Function to set color based on data value
+      function getColor(value) {
+        if (value < 0) {
+          return "blue";
+        } else if (value >= 0 && value < 10) {
+          return "green";
+        } else if (value >= 10 && value < 40) {
+          return "orange";
+        } else if (value >= 40 && value < 100) {
+          return "pink";
+        } else {
+          return "pink";
+        }
+      }
+script(src="/js/downloadSection.js")

@@ -1,0 +1,49 @@
+include head
+include navBar
+
+script.
+  //- console.log('User:', !{JSON.stringify(user)});
+  console.log('Servers:', !{JSON.stringify(servers)});
+  const server=!{JSON.stringify(servers)}
+  const user=!{JSON.stringify(user)};
+  
+  
+
+table.table.table-striped.table-dark
+  thead
+    tr
+      th(scope='col') Server Name
+      th(scope='col') Url
+      th(scope='col') Access Id
+      th(scope='col') View Server Real Time Data
+      th(scope='col') Predict the future values
+      th(scope='col') View Client Details
+  tbody
+    each s in servers
+          if(`${user._id}`==s.userId._id)
+            tr
+                th(scope='row')= s.serverName
+                td= s.serverEndPoint
+                td= s.accessId
+                td
+                    button.btn.btn-primary.submit_btn.w-100.my-4
+                        a(href=`/serverDynamicDataFE/${s.serverName}/${s.accessId}` style="color:white;") View
+                        
+                        
+                td        
+                    button.btn.btn-primary.submit_btn.w-100.my-4
+                        a(href=`/predictionInputForm` style="color:white;") Prediction
+                td
+                  table.table.table-striped.table-dark
+                    thead
+                       tr
+                          th(scope='col') client Name
+                          th(scope='col') View Client Statistics
+                    tbody 
+                      each c in clients 
+                        if(s.serverEndPoint==c.serverEndPoint)
+                          tr 
+                            td= c.clientName
+                            td not done
+
+include footer

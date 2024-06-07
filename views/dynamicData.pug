@@ -1,0 +1,522 @@
+
+
+
+
+doctype html
+html
+  head
+    meta(charset='UTF-8')
+    meta(name='viewport' content='width=device-width, initial-scale=1.0')
+    title Dynamic Scrolling Window
+    link(rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css')
+    script(src='https://d3js.org/d3.v5.min.js')
+    script(src="https://html2canvas.hertzen.com/dist/html2canvas.min.js")
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/d3/7.0.0/d3.min.js' integrity='sha512-t3+whaCkpXX3q7yceBe/P7VxNtB+OalfeZRz/2JHQy9Zdck90gHHEsWdKUMraazxLbyf7G6leG8jIuZgjA9Xmg==' crossorigin='anonymous' referrerpolicy='no-referrer')
+  style.
+    /* Style for the black window */
+    .window {
+      height: auto;
+      width: 100%;
+      background-color: black; /* Dark color for the window background */
+      overflow: auto;
+      padding: 20px;
+      box-sizing: border-box;
+      position: relative;
+      color: white;
+      display: flex;
+      flex-direction:column;
+     
+    }
+    .inner-container {
+      display: flex;
+      
+      align-items: flex-start;
+      width: 100%;
+    }
+    .card {
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #212529; /* Dark color for card background */
+      border: 1px solid #6c757d; /* Border color */
+      border-radius: 5px;
+      flex-basis:30%;
+      align-items:center;
+      
+    }
+    .card .key {
+      font-weight: bold;
+      color: #ffcc00; /* Yellow */
+    }
+    .card .value {
+      color: #00ccff; /* Blue */
+    }
+    .graph-container {
+      width: 100%;
+      height:100%;
+      padding: 10px;
+      display: flex;
+      /* flex-direction: column;*/
+    }
+    /* Adjust the size of the SVG containers */
+    /* Adjust the size of the SVG containers */
+    .graph-container svg {
+      width: 100%; /* Make the SVG take 100% of the width */
+      height: 400px; /* Make the SVG take 100% of the height */
+      flex-basis:40%;
+      margin-bottom:10px;
+    }
+
+  body
+    include navBar
+    .window#window_content 
+      button#btn1.btn.btn-success(type='button' onclick="downloadSection('window_content','btn1')") download Report
+      #dynamic-content.inner-container
+      .graph-container
+        svg.line-graph
+        svg.scatter-graph
+        svg.box-graph
+  include footer
+script.
+  // Function to update data
+  const margin = { top: 20, right: 30, bottom: 40, left: 50 };
+  const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+  const svgWidth = 500;
+  const svgHeight = 400;
+
+  // Store the last four sets of jsonData for each data name
+  const dataSets = {};
+  
+  const serverName = !{JSON.stringify(serverName)};
+  const accessId = !{JSON.stringify(accessId)};
+
+  console.log(serverName,accessId)
+  // Function to update data
+  function updateData() {
+    
+    fetch(`/serverDynamicData/${serverName}/${accessId}`)
+      .then(response => response.json())
+      .then(data => {
+        //- console.log('Data received:', data);
+
+        const innerContainer = document.getElementById('dynamic-content');
+        const lineGraphContainer = document.querySelector('.line-graph');
+        const scatterGraphContainer = document.querySelector('.scatter-graph');
+        const boxGraphContainer = document.querySelector('.box-graph');
+
+        // Check if the containers are available
+        if (!innerContainer || !lineGraphContainer || !scatterGraphContainer || !boxGraphContainer) {
+          console.error('Containers not found.');
+          return;
+        }
+
+        innerContainer.innerHTML = '';
+        lineGraphContainer.innerHTML = '';
+        scatterGraphContainer.innerHTML = '';
+        boxGraphContainer.innerHTML = '';
+
+        // Separate the graph data creation from the loop
+        const graphData = data.dataToUpdate
+          .filter(obj => !['Objects', 'Types', 'Views'].includes(obj.dataName) && obj.dataValue !== null)
+          .map(obj => ({ dataName: obj.dataName, dataValue: obj.dataValue, timeStamp: new Date(obj.timeStamp) }));
+
+        //- console.log('Graph data:', graphData);
+
+        // Update cards
+        data.dataToUpdate.forEach((dataObject) => {
+          // Exclude specific dataNames
+          if (['Objects', 'Types', 'Views'].includes(dataObject.dataName)) {
+            return;
+          }
+
+          const card = document.createElement('div');
+          card.className = 'card';
+
+          for (const [key, value] of Object.entries(dataObject)) {
+            const keyValueElement = document.createElement('div');
+            keyValueElement.className = 'key-value';
+
+            const keyElement = document.createElement('div');
+            keyElement.className = 'key';
+            keyElement.textContent = `${key}:`;
+
+            const valueElement = document.createElement('div');
+            valueElement.className = 'value';
+            valueElement.textContent = value;
+
+            keyValueElement.appendChild(keyElement);
+            keyValueElement.appendChild(valueElement);
+
+            card.appendChild(keyValueElement);
+          }
+
+          innerContainer.appendChild(card);
+        });
+
+        // Update the dataSets for each data name
+        graphData.forEach(({ dataName, dataValue, timeStamp }) => {
+          if (!dataSets[dataName]) {
+            dataSets[dataName] = [];
+          }
+
+          dataSets[dataName].push({ dataValue, timeStamp });
+
+          // Limit the array to store only the last four sets
+          if (dataSets[dataName].length > 10) {
+            dataSets[dataName].shift();
+          }
+        });
+
+        // Call the function to update the graphs only when there is valid data
+        if (graphData.length > 0) {
+          updateLineGraph(dataSets);
+          updateScatterGraph(dataSets);
+          updateBoxGraph(dataSets);
+        }
+      })
+      .catch(error => console.error('Error fetching data:', error));
+  }
+
+  // Function to update the line graph
+  function updateLineGraph(dataSets) {
+    //- console.log('Updating line graph with data:', dataSets);
+
+    // Select the SVG element for the line graph
+    let svg = d3.select('.line-graph');
+
+    // If the SVG element doesn't exist, create it
+    if (svg.empty()) {
+      svg = d3.select('.line-graph')
+        .append('svg')
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .attr('viewBox', `0 0 ${svgWidth} ${svgHeight}`)
+        .attr('preserveAspectRatio', 'xMinYMin meet');
+    }
+
+    // Define x and y scales
+    const x = d3.scaleTime()
+      .domain([
+        d3.min(Object.values(dataSets).flat(), (d) => new Date(d.timeStamp)),
+        d3.max(Object.values(dataSets).flat(), (d) => new Date(d.timeStamp)),
+      ])
+      .range([margin.left, svgWidth - margin.right]);
+
+    const y = d3.scaleLinear()
+      .domain([
+        d3.min(Object.values(dataSets).flat(), (d) => parseFloat(d.dataValue)),
+        d3.max(Object.values(dataSets).flat(), (d) => parseFloat(d.dataValue)),
+      ])
+      .range([svgHeight - margin.bottom, margin.top]);
+
+    // Create x and y axes if not already created
+    const xAxis = d3.axisBottom(x).ticks(d3.timeSecond.every(10)).tickFormat(d3.timeFormat('%H:%M:%S'));
+    const yAxis = d3.axisLeft(y);
+
+    // Append or update x-axis
+    let xAxisGroup = svg.select('.x-axis');
+    if (xAxisGroup.empty()) {
+      xAxisGroup = svg.append('g')
+        .attr('class', 'x-axis')
+        .attr('transform', `translate(0, ${svgHeight - margin.bottom})`)
+        .call(xAxis);
+
+      // Add x-axis label
+      svg.append('text')
+        .attr('transform', `translate(${svgWidth / 2}, ${svgHeight + margin.top + 10})`) // Adjusted the y-coordinate for better visibility
+        .style('text-anchor', 'middle')
+        .text('Timestamp')
+        .attr('fill', 'white');
+    } else {
+      xAxisGroup.transition().call(xAxis);
+    }
+
+    // Append or update y-axis
+    let yAxisGroup = svg.select('.y-axis');
+    if (yAxisGroup.empty()) {
+      yAxisGroup = svg.append('g')
+        .attr('class', 'y-axis')
+        .attr('transform', `translate(${margin.left}, 0)`)
+        .call(yAxis);
+
+      // Add y-axis label
+      svg.append('text')
+        .attr('transform', 'rotate(-90)')
+        .attr('y', 5)
+        .attr('x', -(svgHeight / 2))
+        .attr('dy', '1em')
+        .style('text-anchor', 'middle')
+        .text('Data Value')
+        .attr('fill', 'white');
+    } else {
+      yAxisGroup.transition().call(yAxis);
+    }
+
+    // Draw multi-line graph for each dataName
+    const line = d3.line()
+      .x(d => x(new Date(d.timeStamp)))
+      .y(d => y(parseFloat(d.dataValue)));
+
+    // Create line groups if not already created
+    const lineGroups = svg.selectAll('.line-group')
+      .data(Object.keys(dataSets).map((dataName) => ({ dataName, data: dataSets[dataName] })), (d) => d.dataName);
+
+    lineGroups.enter().append('g')
+      .attr('class', 'line-group')
+      .merge(lineGroups)
+      .each(function (dataSet, index) {
+        const lineGroup = d3.select(this);
+
+        lineGroup.select('.line').remove();
+
+        lineGroup.append('path')
+          .datum(dataSet.data)
+          .attr('class', 'line')
+          .attr('fill', 'none')
+          .attr('stroke', colorScale(index))
+          .attr('stroke-width', 2)
+          .attr('d', line);
+
+        lineGroup.selectAll('.circle').remove();
+
+        lineGroup.selectAll('.circle')
+          .data(dataSet.data)
+          .enter().append('circle')
+          .attr('class', 'circle')
+          .attr('cx', d => x(new Date(d.timeStamp)))
+          .attr('cy', d => y(parseFloat(d.dataValue)))
+          .attr('r', 5)
+          .attr('fill', colorScale(index));
+
+        // Add timestamp labels
+        lineGroup.selectAll('.timestamp-label').remove();
+        lineGroup.selectAll('.timestamp-label')
+          .data(dataSet.data)
+          .enter().append('text')
+          .attr('class', 'timestamp-label')
+          .attr('x', d => x(new Date(d.timeStamp)))
+          .attr('y', svgHeight - margin.bottom + 20) // Adjusted the y-coordinate for better visibility
+          .attr('text-anchor', 'middle')
+          .attr('fill', 'white')
+          .text(d => d3.timeFormat('%H:%M:%S')(new Date(d.timeStamp)))
+          .attr('transform', 'rotate(-90)') // Rotate the timestamp labels vertically
+          .attr('dy', '-0.5em') // Adjust the vertical position
+          .attr('dx', '-0.5em'); // Adjust the horizontal position
+      });
+
+    lineGroups.exit();
+
+    // Display data names
+    const legend = svg.selectAll('.legend')
+      .data(Object.keys(dataSets).map((dataName) => ({ dataName, data: dataSets[dataName] })), (d) => d.dataName);
+
+    legend.enter().append('text')
+      .attr('class', 'legend')
+      .merge(legend)
+      .attr('x', svgWidth - margin.right)
+      .attr('y', (d, i) => i * 20 + margin.top)
+      .style('fill', (d, i) => colorScale(i))
+      .text(d => d.dataName);
+
+    legend.exit().remove();
+  }
+
+  // Function to update the scatter plot
+ function updateScatterGraph(dataSets) {
+  //- console.log('Updating scatter plot with data:', dataSets);
+
+  // Select the SVG element for the scatter plot
+  let svg = d3.select('.scatter-graph');
+
+  // If the SVG element doesn't exist, create it
+  if (svg.empty()) {
+    svg = d3.select('.scatter-graph')
+      .append('svg')
+      .attr('width', '100%')
+      .attr('height', '100%')
+      .attr('viewBox', `0 0 ${svgWidth} ${svgHeight}`)
+      .attr('preserveAspectRatio', 'xMinYMin meet');
+  }
+
+  // Remove existing scatter plot elements
+  svg.selectAll('.scatter-point').remove();
+
+  // Create scatter plot points for each dataName
+  const allDataPoints = Object.values(dataSets).flat();
+
+  // Define x and y scales
+  const xScale = d3.scaleTime()
+    .domain([
+      d3.min(allDataPoints, d => new Date(d.timeStamp)),
+      d3.max(allDataPoints, d => new Date(d.timeStamp)),
+    ])
+    .range([margin.left, svgWidth - margin.right]);
+
+  const yScale = d3.scaleLinear()
+    .domain([
+      d3.min(allDataPoints, d => parseFloat(d.dataValue)),
+      d3.max(allDataPoints, d => parseFloat(d.dataValue)),
+    ])
+    .range([svgHeight - margin.bottom, margin.top]);
+
+  // Define color scale for different dataNames
+  const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+
+  // Draw scatter plot points for each dataName
+  // Draw scatter plot points for each dataName
+  Object.entries(dataSets).forEach(([dataName, dataPoints], index) => {
+  svg.selectAll('.scatter-point-' + sanitizeClassName(dataName))  // Use a sanitized class for each dataName
+    .data(dataPoints)
+    .enter().append('circle')
+    .attr('class', 'scatter-point scatter-point-' + sanitizeClassName(dataName))  // Include the sanitized class in the class attribute
+    .attr('cx', d => xScale(new Date(d.timeStamp)))
+    .attr('cy', d => yScale(parseFloat(d.dataValue)))
+    .attr('r', 5)
+    .attr('fill', colorScale(dataName))  // Use color scale for different colors
+    .attr('stroke', 'white') // Add stroke for better visibility
+    .attr('stroke-width', 1);
+  });
+
+    // Function to sanitize class names
+    function sanitizeClassName(className) {
+   return className.replace(/\W+/g, '-').toLowerCase();
+    }
+
+  // Add x-axis
+  const xAxis = d3.axisBottom(xScale);
+  svg.append('g')
+    .attr('class', 'x-axis')
+    .attr('transform', `translate(0, ${svgHeight - margin.bottom})`)
+    .call(xAxis);
+
+  // Add x-axis label
+  svg.append('text')
+    .attr('transform', `translate(${svgWidth / 2}, ${svgHeight + margin.top + 10})`)
+    .style('text-anchor', 'middle')
+    .text('Timestamp')
+    .attr('fill', 'white');
+
+  // Add y-axis
+  const yAxis = d3.axisLeft(yScale);
+  svg.append('g')
+    .attr('class', 'y-axis')
+    .attr('transform', `translate(${margin.left}, 0)`)
+    .call(yAxis);
+
+  // Add y-axis label
+  svg.append('text')
+    .attr('transform', 'rotate(-90)')
+    .attr('y', 5)
+    .attr('x', -(svgHeight / 2))
+    .attr('dy', '1em')
+    .style('text-anchor', 'middle')
+    .text('Data Value')
+    .attr('fill', 'white');
+  }
+
+
+
+
+
+
+  // Function to update the box graph
+    function updateBoxGraph(dataSets) {
+    //- console.log('Updating box graph with data:', dataSets);
+
+    // Select the SVG element for the box graph
+    let svg = d3.select('.box-graph');
+
+    // If the SVG element doesn't exist, create it
+    if (svg.empty()) {
+      svg = d3.select('.box-graph')
+        .append('svg')
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .attr('viewBox', `0 0 ${svgWidth} ${svgHeight}`)
+        .attr('preserveAspectRatio', 'xMinYMin meet');
+    }
+
+    // Define x scale
+    const x = d3.scaleBand()
+      .domain(Object.keys(dataSets))
+      .range([margin.left, svgWidth - margin.right])
+      .padding(0.1);
+
+    // Define y scale
+    const y = d3.scaleLinear()
+      .domain([
+        d3.min(Object.values(dataSets).flat(), (d) => parseFloat(d.dataValue)),
+        d3.max(Object.values(dataSets).flat(), (d) => parseFloat(d.dataValue)),
+      ])
+      .range([svgHeight - margin.bottom, margin.top]);
+
+    // Create x and y axes if not already created
+    const xAxis = d3.axisBottom(x);
+    const yAxis = d3.axisLeft(y);
+
+    // Append or update x-axis
+    let xAxisGroup = svg.select('.x-axis');
+    if (xAxisGroup.empty()) {
+      xAxisGroup = svg.append('g')
+        .attr('class', 'x-axis')
+        .attr('transform', `translate(0, ${svgHeight - margin.bottom})`)
+        .call(xAxis);
+
+      // Add x-axis label
+      svg.append('text')
+        .attr('transform', `translate(${svgWidth / 2}, ${svgHeight + margin.top + 10})`) // Adjusted the y-coordinate for better visibility
+        .style('text-anchor', 'middle')
+        .text('X-Axis Label')
+        .attr('fill', 'white');
+    } else {
+      xAxisGroup.transition().call(xAxis);
+    }
+
+    // Append or update y-axis
+    let yAxisGroup = svg.select('.y-axis');
+    if (yAxisGroup.empty()) {
+      yAxisGroup = svg.append('g')
+        .attr('class', 'y-axis')
+        .attr('transform', `translate(${margin.left}, 0)`)
+        .call(yAxis);
+
+      // Add y-axis label
+      svg.append('text')
+        .attr('transform', 'rotate(-90)')
+        .attr('y', 5)
+        .attr('x', -(svgHeight / 2))
+        .attr('dy', '1em')
+        .style('text-anchor', 'middle')
+        .text('Y-Axis Label')
+        .attr('fill', 'white');
+    } else {
+      yAxisGroup.transition().call(yAxis);
+    }
+
+    // Draw box plot
+    const boxWidth = x.bandwidth();
+
+    svg.selectAll('.box').remove();
+
+    const boxes = svg.selectAll('.box')
+      .data(Object.entries(dataSets));
+
+    boxes.enter().append('rect')
+      .attr('class', 'box')
+      .merge(boxes)
+      .attr('x', d => x(d[0]))
+      .attr('y', d => y(d[1].map(item => parseFloat(item.dataValue)).sort()[1]))
+      .attr('width', boxWidth)
+      .attr('height', d => y(d[1].map(item => parseFloat(item.dataValue)).sort()[0]) - y(d[1].map(item => parseFloat(item.dataValue)).sort()[1]))
+      .attr('fill', (d, i) => colorScale(i));
+
+    boxes.exit().remove();
+  }
+
+
+
+  // Update data initially
+  updateData();
+
+  // Update data and graphs every 10 seconds (adjust as needed)
+  setInterval(updateData, 1000);
+script(src='/js/downloadSection.js')

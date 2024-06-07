@@ -1,0 +1,215 @@
+doctype html
+
+   
+html(lang="en")
+  head
+    meta(charset='utf-8')
+    meta(name='viewport' content='width=device-width, initial-scale=1')
+    title PsycheTech
+    link(href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css", rel="stylesheet")
+    link(href='https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css' rel='stylesheet' integrity='sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx' crossorigin='anonymous')
+    link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css')
+    link(href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css", rel="stylesheet")
+    link(rel='stylesheet' href='/css/style.css')
+    //- script(src='https://cdn.tailwindcss.com')
+    //- script(src='https://unpkg.com/imask')
+
+ 
+    style.
+    
+    
+        @media screen and (max-width: 576px)
+        {
+            .banner-image 
+                {
+                    height: 27rem;
+                    background-size: cover;
+                    background-position: center;
+                }
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 8px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+        .h2-style {
+            text-align: center;
+            padding-bottom: 30px
+        }
+
+        .footer {
+            margin-top: 20px;
+        }
+        .table-style{
+            padding-left: 200px; 
+            padding-right: 200px; 
+            padding-top: 60px;
+        }
+        .button-style{
+         position: absolute;
+         right: 10%;
+            padding-top: 20px;
+        }
+      
+        .metric-label {
+            font-weight: bold;
+            margin-right: 5px;
+
+            }
+
+        .metric-value {
+        font-style: italic;
+          font-weight: normal;
+          
+        }
+        .h4-style{
+            padding-bottom: 15px;
+        }
+
+
+  body
+  
+    section.bg-light.py-2
+        nav.navbar.navbar-expand-lg.bg-light.w-75.w-100.mx-auto(style='background-color: rgba(0, 0, 0, 0.2);')
+            .container-fluid
+                a.navbar-brand.text-dark.font-semibold.w-25.ms-lg-5(href='#') PsycheTech
+                button.navbar-toggler(type='button' data-bs-toggle='collapse' data-bs-target='#navbarSupportedContent' aria-controls='navbarSupportedContent' aria-expanded='false' aria-label='Toggle navigation')
+                    span.navbar-toggler-icon
+                #navbarSupportedContent.collapse.navbar-collapse
+                    ul.navbar-nav.mb-2.mb-lg-0.ms-auto.me-lg-5
+                        li.nav-item
+                            a.nav-link.text-dark.active.btn.btn-outline-primary.px-4.font-semibold.border-0(aria-current='page' href='/home') Home
+                        li.nav-item
+                            a.nav-link.text-dark.ms-3.btn.btn-outline-primary.px-4.font-semibold.border-0(href='#about') About
+                        li.nav-item
+                            a.nav-link.text-dark.ms-3.btn.btn-outline-primary.px-4.font-semibold.border-0(href='#package') Contact   
+                        if user  
+                            li.nav-item
+                                a.nav-link.text-dark.ms-3.btn.btn-outline-primary.px-4.font-semibold.border-0(href='#',class='logout-button') Logout
+   
+    main
+    
+    if pdfName
+        section.text-center.button-style
+             button.btn.btn-primary(onclick=`downloadPDF('${pdfName}')`) Download PDF
+
+  each data in dataList
+    section.table-style
+      h2.h2-style Prediction for #{data.dataName}
+    
+      h6
+          span.metric-label Mean Squared Error:
+          span.metric-value #{data.evaluation_metrics['Mean Squared Error']}
+  
+      h6.h4-style
+          span.metric-label R-squared:
+          span.metric-value #{data.evaluation_metrics['R-squared']}
+
+    
+      table.table
+        thead
+          tr
+            th.text-center Prediction
+            th.text-center Timestamp
+        tbody
+          each prediction, index in data.predictions
+            tr
+              td.text-center #{prediction}
+              td.text-center #{data.timestamps[index]}
+      
+
+
+include footer
+script(src="/js/login.js")
+  
+script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js' integrity='sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa' crossorigin='anonymous')
+script(src='https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.0/axios.min.js' integrity='sha512-aoTNnqZcT8B4AmeCFmiSnDlc4Nj/KPaZyB5G7JnOnUEkdNpCZs1LCankiYi01sLTyWy+m2P+W4XM+BuQ3Q4/Dg==' crossorigin='anonymous' referrerpolicy='no-referrer')
+script(src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js")
+script.
+    //-  async function downloadPDF(pdfName) {
+    //-     console.log("Downloading PDF:", pdfName);
+    //-     try {
+    //-         const response = await fetch(`/api/v1/predict/download/pdf/${pdfName}`);
+    //-         if (!response.ok) {
+    //-             throw new Error('Failed to fetch PDF');
+    //-         }
+    //-         const blob = await response.blob();
+    //-         const url = window.URL.createObjectURL(blob);
+    //-         const link = document.createElement('a');
+    //-         link.href = url;
+    //-         link.setAttribute('download', 'your_pdf_filename.pdf');
+    //-         document.body.appendChild(link);
+    //-         link.click();
+    //-         document.body.removeChild(link);
+    //-     } catch (error) {
+    //-         console.error('Error downloading PDF:', error);
+    //-     }
+    //-  }
+    
+    
+        //- async function downloadPDF(pdfName) {
+        //-             try {
+        //-                 // Create a hidden anchor tag
+        //-                 const link = document.createElement('a');
+        //-                 link.style.display = 'none';
+        //-                 document.body.appendChild(link);
+
+        //-                 // Set the href attribute of the anchor tag
+        //-                 link.href = `/api/v1/predict/download/pdf/${pdfName}`;
+        //-                 link.setAttribute('download', '');
+
+        //-                 // Programmatically click the anchor tag to trigger the download
+        //-                 link.click();
+
+        //-                 // Remove the anchor tag from the DOM after download
+        //-                 document.body.removeChild(link);
+        //-             } catch (error) {
+        //-                 console.error('Error downloading PDF:', error);
+        //-             }
+        //-         }
+        
+        
+        async function downloadPDF(pdfName) {
+                try {
+                // Make a GET request to the backend endpoint to download the PDF
+                const response = await axios.get(`/api/v1/predict/download/pdf/${pdfName}`, {
+                    responseType: 'blob' // Specify response type as blob to handle binary data
+                });
+
+                // Create a Blob object from the response data
+                const blob = new Blob([response.data], { type: 'application/pdf' });
+
+                // Create a temporary URL for the Blob object
+                const url = window.URL.createObjectURL(blob);
+
+                // Create a temporary anchor element
+                const link = document.createElement('a');
+
+                // Set the anchor element's attributes for downloading the file
+                link.href = url;
+                link.setAttribute('download', pdfName);
+
+                // Programmatically click the anchor element to trigger the download
+                link.click();
+
+                // Clean up: remove the temporary URL and anchor element
+                window.URL.revokeObjectURL(url);
+                link.remove();
+                } catch (error) {
+                console.error('Error downloading PDF:', error);
+                }
+            }
+

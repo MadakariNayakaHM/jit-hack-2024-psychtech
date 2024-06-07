@@ -1,0 +1,54 @@
+include head 
+
+
+section.bg-light.py-2
+  nav.navbar.navbar-expand-lg.bg-light.w-75.w-100.mx-auto(style='background-color: rgba(0, 0, 0, 0.2);')
+    .container-fluid
+      a.navbar-brand.text-dark.fw-semibold.w-25.ms-lg-5(href='#') PsycheTech
+      button.navbar-toggler(type='button' data-bs-toggle='collapse' data-bs-target='#navbarSupportedContent' aria-controls='navbarSupportedContent' aria-expanded='false' aria-label='Toggle navigation')
+        span.navbar-toggler-icon
+      #navbarSupportedContent.collapse.navbar-collapse
+        ul.navbar-nav.mb-2.mb-lg-0.ms-auto.me-lg-5
+          li.nav-item
+            a.nav-link.text-dark.active.btn.btn-outline-primary.px-4.fw-semibold.border-0(aria-current='page' href='/home') Home
+          li.nav-item
+            a.nav-link.text-dark.ms-3.btn.btn-outline-primary.px-4.fw-semibold.border-0(href='#about') About
+          li.nav-item
+            a.nav-link.text-dark.ms-3.btn.btn-outline-primary.px-4.fw-semibold.border-0(href='#package') Contact
+            a.nav-link.text-dark.ms-3.btn.btn-outline-primary.px-4.fw-semibold.border-0(href='#package',class='') 
+          if user  
+            li.nav-item
+              a.nav-link.text-dark.ms-3.btn.btn-outline-primary.px-4.fw-semibold.border-0(href='#',class='logout-button') Logout
+            li.nav-item
+              a.nav-link.text-dark.ms-3.btn.btn-outline-primary.px-4.fw-semibold.border-0(href='/userProfile') Profile
+          else    
+            li.nav-item
+              a.nav-link.text-dark.ms-3.btn.btn-outline-primary.px-4.fw-semibold.border-0(href='/login') Login
+
+section.wrapper(style='padding:5rem 0;')
+    .container
+        .col-sm-8.offset-sm-2.col-lg-6.offset-lg-3.col-xl-4.offset-xl-4.text-center
+            form.rounded.bg-white.shadow.p-5(action='/api/v1/predict/prediction', method='POST')
+                h3.text-dark.fw-bolder.fs-4.mb-2 Enter the data for prediction  
+                .form-floating.mb-3
+                    input#number.form-control(type='number', name='number', placeholder='ex-05', min='0')
+                    label(for='number') Number  of prediction you want to make
+                .form-floating.mb-3
+                    input#interval.form-control(type='number', name='interval', placeholder='ex-10', min='0')
+                    label(for='interval') Interval between prediction in hours
+               
+                button.btn.btn-primary.submit_btn.w-100.my-4(type='submit') Predict
+
+               
+                    
+  
+include footer
+script(src="/js/login.js")
+script(src="/js/.js")   
+script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js' integrity='sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa' crossorigin='anonymous')
+script(src='https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.0/axios.min.js' integrity='sha512-aoTNnqZcT8B4AmeCFmiSnDlc4Nj/KPaZyB5G7JnOnUEkdNpCZs1LCankiYi01sLTyWy+m2P+W4XM+BuQ3Q4/Dg==' crossorigin='anonymous' referrerpolicy='no-referrer')
+
+        
+        
+        
+                    

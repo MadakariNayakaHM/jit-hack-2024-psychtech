@@ -1,0 +1,96 @@
+include head 
+include navBar
+style.
+    .me-2 {
+    margin-right: 0.5rem ;
+    }
+//- if message
+//-     div.alert= message 
+.container.container-fluid.mt-5.mb-5(style='width: 100%;')
+    .main-body
+        .row
+            .col-lg-4
+                .card
+                    .card-body
+                        .d-flex.flex-column.align-items-center.text-center
+                            img.rounded-circle.p-1.bg-primary(src=`${user.photo}` alt='/uploads/default.png' width='110')
+                            .mt-3
+                                h4 #{user.name}
+                        hr.my-4
+                        ul.list-group.list-group-flush
+                            li.list-group-item.d-flex.justify-content-between.align-items-center.flex-wrap
+                                h6.mb-0
+                                    i.feather.feather-globe.me-2.icon-inline
+                                    | Email
+                                span.text-secondary #{user.email}
+                            li.list-group-item.d-flex.justify-content-between.align-items-center.flex-wrap
+                                h6.mb-0
+                                    i.feather.feather-github.me-2.icon-inline
+                                    | Phone
+                                span.text-secondary #{user.phone}
+                            li.list-group-item.d-flex.justify-content-between.align-items-center.flex-wrap
+                                h6.mb-0
+                                    i.feather.feather-twitter.me-2.icon-inline.text-info
+                                    | Role
+                                span.text-secondary #{user.role}
+                              
+            .col-lg-8
+                .card
+                    .card-body
+                        form(id='userForm', action='/submit-user-data', method='POST',enctype='multipart/form-data')  
+                            .row.mb-3
+                                .col-sm-3
+                                    h6.mb-0 Name
+                                .col-sm-9.text-secondary
+                                    input.form-control(type='text', value=`${user.name}`,name='name')
+                            .row.mb-3
+                                .col-sm-3
+                                    h6.mb-0 Email
+                                .col-sm-9.text-secondary
+                                    input.form-control(type='text', value=`${user.email}`,name='email')
+                            .row.mb-3
+                                .col-sm-3
+                                    h6.mb-0 Phone
+                                .col-sm-9.text-secondary
+                                    input.form-control(type='text', value=`${user.phone}`,name='phone')
+                            .row.mb-3
+                                .col-sm-3
+                                    h6.mb-0 Upload Photo
+                                .col-sm-9.text-secondary
+                                    input.form-control(type='file', name='photo')        
+                            .row
+                                .col-sm-3
+                                .col-sm-9.text-secondary
+                                    input.btn.btn-primary.px-4(type='submit' value='Save Changes')
+
+div.footer.fixed-bottom
+  footer.bg-light.text-center.text-white
+    // Grid container
+    .container.p-4.pb-0
+      section.mb-4
+        a.btn.btn-primary.btn-floating.m-1(style='background-color: #3b5998;' href='#!' role='button')
+          i.fab.fa-facebook-f
+        // Twitter
+        a.btn.btn-primary.btn-floating.m-1(style='background-color: #55acee;' href='#!' role='button')
+          i.fab.fa-twitter
+        // Google
+        a.btn.btn-primary.btn-floating.m-1(style='background-color: #dd4b39;' href='#!' role='button')
+          i.fab.fa-google
+        // Instagram
+        a.btn.btn-primary.btn-floating.m-1(style='background-color: #ac2bac;' href='#!' role='button')
+          i.fab.fa-instagram
+        // Linkedin
+        a.btn.btn-primary.btn-floating.m-1(style='background-color: #0082ca;' href='#!' role='button')
+          i.fab.fa-linkedin-in
+        // Github
+        a.btn.btn-primary.btn-floating.m-1(style='background-color: #333333;' href='#!' role='button')
+          i.fab.fa-github
+
+    .text-center.p-3(style='background-color: rgba(0, 0, 0, 0.2);')
+      span(style="color: black;") &copy;: &nbsp;
+      a.text-dark.fw-semibold(href='/home') PsycheTech
+script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js')
+script(src='https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js')
+script(src='https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.0/axios.min.js' integrity='sha512-aoTNnqZcT8B4AmeCFmiSnDlc4Nj/KPaZyB5G7JnOnUEkdNpCZs1LCankiYi01sLTyWy+m2P+W4XM+BuQ3Q4/Dg==' crossorigin='anonymous' referrerpolicy='no-referrer')
+script(src="/js/login.js")  
+

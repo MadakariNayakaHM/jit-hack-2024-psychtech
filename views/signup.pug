@@ -1,0 +1,38 @@
+
+include head
+include navBar 
+section.wrapper(style='padding:5rem 0;')
+    .container
+        .col-sm-8.offset-sm-2.col-lg-6.offset-lg-3.col-xl-4.offset-xl-4.text-center
+            form.rounded.bg-white.shadow.p-5
+                h3.text-dark.fw-bolder.fs-4.mb-2 Create an Account
+                .fw-normal.text-muted.mb-2
+                    | Already have an account? 
+                    a.text-primary.fw-bold.text-decoration-none(href='/login') Sign in here
+                .form-floating.mb-3
+                    input#name.form-control(type='text' placeholder='name@example.com')
+                    label(for='name')  Name
+                .form-floating.mb-3
+                    input#email.form-control(type='email' placeholder='name@example.com')
+                    label(for='email') Email address
+                .form-floating.mb-3
+                    input#phone.form-control(type='tel' placeholder='(123) 456-7890')
+                    label(for='phone') Phone number  
+                .form-floating.mb-3
+                    input#password.form-control(type='password' placeholder='Password')
+                    label(for='password') Password
+                    //- span.password-info.mt-2 Use 8 or more characters with a mix of letters, numbers &amp; symbols.
+                .form-floating.mb-3
+                    input#confirmPassword.form-control(type='password' placeholder='Password')
+                    label(for='confirmPassword') Confirm Password
+                .form-check.d-flex.align-items-center
+                    input#gridCheck.form-check-input(type='checkbox' checked='')
+                    label.form-check-label.ms-2(for='gridCheck')
+                        | I Agree 
+                        a(href='#') Terms and conditions
+                        | .
+                button.btn.btn-primary.submit_btn.w-100.my-4(type='submit') Continue
+include footer 
+script(src='https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.0/axios.min.js' integrity='sha512-aoTNnqZcT8B4AmeCFmiSnDlc4Nj/KPaZyB5G7JnOnUEkdNpCZs1LCankiYi01sLTyWy+m2P+W4XM+BuQ3Q4/Dg==' crossorigin='anonymous' referrerpolicy='no-referrer')
+
+script(src="/js/signup.js")
