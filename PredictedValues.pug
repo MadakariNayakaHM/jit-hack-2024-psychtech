@@ -1,0 +1,91 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset='utf-8')
+    meta(name='viewport' content='width=device-width, initial-scale=1')
+ 
+    link(href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css", rel="stylesheet")
+    link(rel='stylesheet' href='/css/style.css')
+
+    style.
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 8px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+        .h2-style {
+            text-align: center;
+            padding-bottom: 30px
+        }
+
+        .footer {
+            margin-top: 20px;
+        }
+        .table-style{
+            padding-left: 80px; 
+            padding-right: 80px; 
+            padding-top: 60px;
+        }
+         .table-style:first-of-type { /* Target the first section */
+            padding-top: 0; /* Override top padding for the first section */
+        }
+      
+        .metric-label {
+            font-weight: bold;
+            margin-right: 5px;
+
+            }
+
+        .metric-value {
+        font-style: italic;
+          font-weight: normal;
+          
+        }
+        .h4-style{
+            padding-bottom: 15px;
+        }
+
+
+  body
+   
+    main
+  each data in dataList
+    section.table-style
+      h2.h2-style Prediction for #{data.dataName}
+    
+      h4
+          span.metric-label Mean Squared Error:
+          span.metric-value #{data.evaluation_metrics['Mean Squared Error']}
+  
+      h4.h4-style
+          span.metric-label R-squared:
+          span.metric-value #{data.evaluation_metrics['R-squared']}
+
+    
+      table.table
+        thead
+          tr
+            th Prediction
+            th Timestamp
+        tbody
+          each prediction, index in data.predictions
+            tr
+              td.text-center #{prediction}
+              td.text-center #{data.timestamps[index]}
+      
+
+
+
